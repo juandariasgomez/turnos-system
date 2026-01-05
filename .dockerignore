@@ -1,0 +1,14 @@
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.next
+release.properties
+.git/
+.gitignore
+.idea/
+.vscode/
+*.iml
+HELP.md
+mvnw
+mvnw.cmd
+.mvn/

@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <link rel="icon" href="/images/favicon.png" type="image/png">
+  <title>Cajero - Turnos</title>
+  <style>
+    .row {
+      margin: 10px 0;
+    }
+
+    body {
+      font-family: system-ui, Arial;
+      margin: 0;
+      background: #f4f6f8;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+
+    button {
+      padding: 16px 32px;
+      margin: 16px;
+      font-size: 24px;
+      border-radius: 12px;
+      cursor: pointer;
+    }
+
+    .btn-next {
+      background: #1e579e;
+      color: #fff;
+    }
+
+    #nextPerson {
+      font-size: 32px;
+      font-weight: 800;
+      margin-top: 16px;
+    }
+  </style>
+</head>
+<body>
+<label for="moduleSelect" style="font-size:18px; font-weight:700; margin-bottom:12px;">
+  Seleccione módulo:
+</label>
+<select id="moduleSelect" style="font-size:18px; padding:8px 12px; border-radius:8px; border:1px solid #ccc; margin-bottom:20px;">
+  <option value="1">Módulo 1</option>
+  <option value="2">Módulo 2</option>
+  <option value="3">Módulo 3</option>
+  <option value="4">Módulo 4</option>
+</select>
+<div class="row">
+  <button id="nextTurn" class="btn-next">Llamar siguiente</button>
+  <button id="finishBtn">Terminar atención</button>
+</div>
+<div id="nextPerson"></div>
+<script>
+  const STORAGE_KEY = "currentTicket";
+  let currentTicketSaved = null;
+  const nextBtn = document.getElementById('nextTurn');
+  const finishBtn = document.getElementById('finishBtn');
+  const nextPersonDiv = document.getElementById('nextPerson');
+  const moduleSelect = document.getElementById('moduleSelect');
+
+  // Recuperar estado al cargar
+  restoreFromStorage();
+  // Función para llamar al siguiente turno
+  nextBtn.addEventListener('click', () => {
+    // Leemos de memoria ANTES de llamar al siguiente.
+    restoreFromStorage();
+    if (restoreFromStorage()) {
+      alert("Debes terminar la atención actual antes de llamar a otro turno");
+      return;
+    }
+    const moduleNumber = moduleSelect.value;
+    fetch(`/api/tickets/next?module=${moduleNumber}`)
+    .then(r => {
+      if (!r.ok) {
+        throw new Error("No hay turnos pendientes");
+      }
+      return r.json();
+    })
+    .then(dto => {
+      saveToStorage(dto);
+      restoreFromStorage(); // Actualiza la pantalla y desactiva el botón
+      //Reproducir sonido
+      const audio = new Audio('/sound/chord.mp3');
+      audio.play().catch(err => console.log("Error audio: ", err));
+    })
+    .catch(err => {
+      nextPersonDiv.textContent = err.message;
+    });
+  });
+
+  // --- Terminar atención ---
+  finishBtn.addEventListener('click', () => {
+    // Releer SIEMPRE desde memoria por si hubo refresh
+    if (!restoreFromStorage()) {
+      alert("No hay ticket en atención");
+      return;
+    }
+    fetch(`/api/tickets/${currentTicketSaved.id}/serve`, {method: 'POST'})
+    .then(r => r.json())
+    .then(() => {
+      clearStorage();
+      restoreFromStorage(); // Pantalla vuelve a "Nadie en atención"
+    });
+  });
+
+  function restoreFromStorage() {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    currentTicketSaved = raw ? JSON.parse(raw) : null;
+
+    if (currentTicketSaved) {
+      nextPersonDiv.textContent = `En atención: ${currentTicketSaved.fullName} | Turno: ${currentTicketSaved.code}`;
+      nextBtn.disable = true; // Bloquear "Llamar Siguiente"
+      moduleSelect.value = currentTicketSaved.moduleNumber; // La etiqueta select mostrará el módulo seleccionado que se guardó en memoria.
+      return true; // Hay ticket activo
+    } else {
+      nextPersonDiv.textContent = "Nadie en atención";
+      nextBtn.disabled = false;
+      return false; // No hay ticket activo
+    }
+  }
+
+  function saveToStorage(ticket) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(ticket));
+    currentTicketSaved = ticket;
+  }
+
+  function clearStorage() {
+    localStorage.removeItem(STORAGE_KEY);
+    currentTicketSaved = null;
+  }
+
+  // Prevenir cerrar o recargar la página si hay un ticket en atención.
+  window.addEventListener("beforeunload", function (e) {
+    const currentTicket = localStorage.getItem("currentTicket");
+    if (currentTicket) {
+      e.preventDefault();
+    }
+  });
+</script>
+</body>
+</html>

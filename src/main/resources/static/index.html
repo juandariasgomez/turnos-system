@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <link rel="icon" href="/images/favicon.png" type="image/png">
+  <title>Tablero de Turnos</title>
+  <style>
+    body {
+      font-family: system-ui, Arial;
+      margin: 0;
+      background: #f4f6f8
+    }
+
+    .bar {
+      background: #0a7;
+      color: #fff;
+      padding: 16px;
+      font-weight: 700
+    }
+
+    .row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 24px;
+      margin: 8px;
+      font-size: 42px;
+      font-weight: 600;
+      border-radius: 12px;
+      /* Degradado de azul a verde */
+      background: linear-gradient(135deg, #326e9e, #2b9097);
+      color: #fff; /* para que el texto resalte */
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .row:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .turno {
+      font-weight: 800
+    }
+  </style>
+</head>
+<body>
+<div class="bar">CÓDIGO | NOMBRE | MÓDULO</div>
+<div id="list"></div>
+<script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+<script>
+  const list = document.getElementById('list');
+  let items = []; // Array global para los tickets
+  function render(items) {
+    list.innerHTML = items.map(it =>
+        `<div class="row">
+          <div class="turno">${it.code}</div>
+          <div>${it.fullName}</div>
+          <div>Módulo ${it.module}</div>
+        </div>`).join('');
+  }
+
+  //Cargar los últimos 3 turnos al inicio
+  fetch('api/tickets/board/last?limit=3').then(r => r.json()).then(data => {
+    items = data;
+    render(items);
+  })
+
+  //Configurar WebSockets
+  const sock = new SockJS('/ws');
+  const client = Stomp.over(sock);
+  client.connect({}, () => {
+    console.log("Connected al WebSocket")
+    client.subscribe('/topic/board', msg => {
+      console.log("Llego mensaje: " + msg.body);
+      const ticket = JSON.parse(msg.body);
+      if (ticket.action === "refresh") {
+        fetch('api/tickets/board/last?limit=3')
+        .then(r => r.json())
+        .then(data => {
+          items = data;
+          render(items);
+        });
+      } else {
+        items.unshift(ticket);
+        items = items.slice(0, 3);
+        render(items);
+        //client.send("/app/sendBoard", {}, "Hola, desde el cliente BOARD") -> Cliente envía al servidor
+      }
+    });
+    // Suscripción del nuevo topic
+    /*client.subscribe("/topic/server", msg => {
+      console.log("Mensaje desde el servidor: ", msg.body);
+    })*/
+  });
+</script>
+</body>
+</html>
