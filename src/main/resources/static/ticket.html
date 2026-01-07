@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -28,116 +29,129 @@
     }
   </style>
 </head>
+
 <body>
-<div class="container">
-  <div class="card p-4 col-md-6 mx-auto">
-    <h3 class="text-center mb-3">Generar Ticket</h3>
-    <form id="ticketForm">
-      <div class="mb-3">
-        <label for="dni" class="form-label">DNI</label>
-        <input type="text" maxlength="8" class="form-control" id="dni" required>
-      </div>
-      <div class="mb-3">
-        <label for="firstName" class="form-label">Nombres</label>
-        <input type="text" class="form-control" id="firstName">
-      </div>
-      <div class="mb-3">
-        <label for="lastName" class="form-label">Apellidos</label>
-        <input type="text" class="form-control" id="lastName">
-      </div>
-      <div id="warning" class="alert alert-warning d-none">
-        Rellene sus datos personales antes de generar el ticket.
-      </div>
-      <button type="submit" class="btn btn-primary w-100">Generar Ticket</button>
-    </form>
+  <div class="container">
+    <div class="card p-4 col-md-6 mx-auto">
+      <h3 class="text-center mb-3">Generar Ticket</h3>
+      <form id="ticketForm">
+        <div class="mb-3">
+          <label for="dni" class="form-label">DNI</label>
+          <input type="text" maxlength="11" class="form-control" id="dni" required>
+        </div>
+        <div class="mb-3">
+          <label for="firstName" class="form-label">Nombres</label>
+          <input type="text" class="form-control" id="firstName">
+        </div>
+        <div class="mb-3">
+          <label for="lastName" class="form-label">Apellidos</label>
+          <input type="text" class="form-control" id="lastName">
+        </div>
+        <div id="warning" class="alert alert-warning d-none">
+          Rellene sus datos personales antes de generar el ticket.
+        </div>
+        <button type="submit" class="btn btn-primary w-100">Generar Ticket</button>
+      </form>
+    </div>
   </div>
-</div>
 
-<script>
-  const form = document.getElementById("ticketForm");
-  const dniInput = document.getElementById("dni");
-  const firstNameInput = document.getElementById("firstName");
-  const lastNameInput = document.getElementById("lastName");
-  const warning = document.getElementById("warning");
+  <script>
+    const form = document.getElementById("ticketForm");
+    const dniInput = document.getElementById("dni");
+    const firstNameInput = document.getElementById("firstName");
+    const lastNameInput = document.getElementById("lastName");
+    const warning = document.getElementById("warning");
 
-  // Cuando el usuario deja de escribir en el DNI, buscar en la BD
-  dniInput.addEventListener("blur", async () => {
-    const dni = dniInput.value.trim();
-    if (!dni) {
-      return;
-    }
-    try {
-      const res = await fetch(`/api/persons/searchByDNI/${dni}`); //Recuerda que, fetch en JavaScript nunca lanza un error
-      // (rechaza la promesa) por ejemplo: 404, 500. Solo entra en el catch si el servidor está caído, CORS, DNS, etc.
-      if (res.ok) {
-        const person = await res.json();
-        firstNameInput.value = person.firstName;
-        lastNameInput.value = person.lastName;
-        firstNameInput.disabled = true;
-        lastNameInput.disabled = true;
-        warning.classList.add("d-none");
-      } else {
-        // No existe -> limpiar para que usuario escriba
-        firstNameInput.disabled = false;
-        lastNameInput.disabled = false;
-        firstNameInput.value = "";
-        lastNameInput.value = "";
+    // Cuando el usuario deja de escribir en el DNI, buscar en la BD
+    dniInput.addEventListener("blur", async () => {
+      const dni = dniInput.value.trim();
+      if (!dni) {
+        return;
       }
-    } catch (err) {
-      console.error("Error buscando persona:", err.message);
-    }
-  });
+      try {
+        const res = await fetch(`/api/persons/searchByDNI/${dni}`); //Recuerda que, fetch en JavaScript nunca lanza un error
+        // (rechaza la promesa) por ejemplo: 404, 500. Solo entra en el catch si el servidor está caído, CORS, DNS, etc.
+        if (res.ok) {
+          const person = await res.json();
+          firstNameInput.value = person.firstName;
+          lastNameInput.value = person.lastName;
+          firstNameInput.disabled = true;
+          lastNameInput.disabled = true;
+          warning.classList.add("d-none");
+        } else {
+          // No existe -> limpiar para que usuario escriba
+          firstNameInput.disabled = false;
+          lastNameInput.disabled = false;
+          firstNameInput.value = "";
+          lastNameInput.value = "";
+        }
+      } catch (err) {
+        console.error("Error buscando persona:", err.message);
+      }
+    });
 
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const dni = dniInput.value.trim();
-    const firstName = firstNameInput.value.trim();
-    const lastName = lastNameInput.value.trim();
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const dni = dniInput.value.trim();
+      const firstName = firstNameInput.value.trim();
+      const lastName = lastNameInput.value.trim();
 
-    if (!firstName || !lastName) {
-      warning.classList.remove("d-none");
-      return;
-    }
-
-    try {
-      const res = await fetch("/api/tickets", {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({dni, firstName, lastName})
-      });
-      if (!res.ok) {
-        const errBody = await res.json();
-        warning.textContent = errBody.message;
+      if (!firstName || !lastName) {
         warning.classList.remove("d-none");
-        throw new Error(errBody.message || "Error al crear ticket");
+        return;
       }
-      const ticket = await res.json();
-      // Abrir ventana de impresión
-      const printWindow = window.open("", "_blank", "width=400,height=300");
-      printWindow.document.write(`
-          <html lang="es">
-            <head>
-            <meta charset="UTF-8">
-              <title>Ticket ${ticket.code}</title>
-              <style>
-                body { font-family: Arial, sans-serif; text-align: center; padding: 40px; }
-                .ticket-code { font-size: 3rem; font-weight: bold; margin-bottom: 20px; }
-                .ticket-name { font-size: 1.2rem; }
-              </style>
-            </head>
-            <body>
-              <div class="ticket-code">${ticket.code}</div>
-              <div class="ticket-name">${ticket.fullName}</div>
-              <script>window.print();<\/script>
-            </body>
-          </html>
-        `);
-      printWindow.document.close();
-    } catch (err) {
-      console.error("Error:", err.message);
-      alert("No se pudo generar el ticket.");
-    }
-  });
-</script>
+
+      try {
+        const res = await fetch("/api/tickets", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ dni, firstName, lastName })
+        });
+        if (!res.ok) {
+          const errBody = await res.json();
+          warning.textContent = errBody.message || "Error al crear ticket";
+          warning.classList.remove("d-none");
+          return; // Salir si hay error
+        }
+        const ticket = await res.json();
+        // Abrir ventana de impresión
+        // Abrir ventana de impresión
+        const printWindow = window.open("", "_blank", "width=400,height=300");
+
+        printWindow.document.documentElement.innerHTML = `
+  <head>
+    <meta charset="UTF-8">
+    <title>Ticket ${ticket.code}</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        text-align: center;
+        padding: 40px;
+      }
+      .ticket-code {
+        font-size: 3rem;
+        font-weight: bold;
+        margin-bottom: 20px;
+      }
+      .ticket-name {
+        font-size: 1.2rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="ticket-code">${ticket.code}</div>
+    <div class="ticket-name">${ticket.firstName} ${ticket.lastName}</div>
+  </body>
+`;
+
+        printWindow.print();
+
+      } catch (err) {
+        console.error("Error:", err.message);
+        alert("No se pudo generar el ticket.");
+      }
+    });
+  </script>
 </body>
+
 </html>

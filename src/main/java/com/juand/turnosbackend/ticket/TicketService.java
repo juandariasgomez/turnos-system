@@ -60,6 +60,9 @@ public class TicketService {
   }
 
   public TicketResponseDTO serve(Long id) {
+    if (id == null) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "ID no puede ser nulo");
+    }
     Ticket t =
       ticketRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No se ha encontrado el ticket"));
     t.setStatus(TicketStatus.SERVED);
@@ -77,7 +80,7 @@ public class TicketService {
 
   private TicketResponseDTO buildTicketResponseDTO(final Ticket ticket) {
     return new TicketResponseDTO(ticket.getId(), ticket.getCode(), ticket.getStatus(), ticket.getCreatedAt(),
-      ticket.getCalledAt(), ticket.getServedAt(), ticket.getModuleNumber(),
+      ticket.getCalledAt(), ticket.getServedAt(), ticket.getModuleNumber() != null ? ticket.getModuleNumber() : 0,
       ticket.getPerson().getName() + " " + ticket.getPerson().getLastName());
   }
 }
