@@ -1,0 +1,22 @@
+server:
+  port: ${PORT:8080}
+
+spring:
+  application:
+    name: turnosbackend
+  datasource:
+    url: jdbc:mysql://${DB_HOST}:${DB_PORT}/${DB_NAME}?allowPublicKeyRetrieval=true&useSSL=true&serverTimezone=UTC
+    username: ${DB_USER}
+    password: ${DB_PASS}
+  jpa:
+    hibernate:
+      ddl-auto: validate   # en prod mejor usar migraciones (Flyway/Liquibase)
+    properties:
+      hibernate:
+        format_sql: false
+    open-in-view: false
+logging:
+  level:
+    root: WARN
+    org.springframework.web: WARN
+    org.hibernate.SQL: WARN

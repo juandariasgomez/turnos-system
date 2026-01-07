@@ -32,4 +32,4 @@ USER javauser
 EXPOSE 8080
 
 # Usar exec para que las señales del sistema (como STOP) lleguen directo a Java
-ENTRYPOINT ["sh", "-c", "exec java $JAVA_OPTS -jar app.jar"]
+ENTRYPOINT ["java", "-jar", "app.jar"]

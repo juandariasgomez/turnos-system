@@ -37,8 +37,8 @@ public class TicketController {
       person.setLastName(dto.lastName());
       return personRepository.save(person);
     });
-    if (!dto.dni().matches("\\d{11}")) {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El DNI debe contener 11 dígitos como mínimo.");
+    if (!dto.dni().matches("\\d{10}")) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El DNI debe contener 10 dígitos como mínimo.");
     }
     return ticketService.create(p);
   }

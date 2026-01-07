@@ -1,0 +1,27 @@
+server:
+  port: ${PORT:8080}
+spring:
+  application:
+    name: turnosbackend
+  datasource:
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:turnosbd}?createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC
+    username: ${DB_USER}
+    password: ${DB_PASS}
+  jpa:
+    hibernate:
+      ddl-auto: update   # útil en dev para crear/actualizar tablas automáticamente
+    properties:
+      hibernate:
+        format_sql: true
+        show_sql: true   # muestra SQL en logs para depuración
+    open-in-view: true   # más flexible en dev
+  devtools:
+    restart:
+      enabled: true
+    livereload:
+      enabled: true
+logging:
+  level:
+    root: INFO
+    org.springframework.web: DEBUG
+    org.hibernate.SQL: DEBUG
