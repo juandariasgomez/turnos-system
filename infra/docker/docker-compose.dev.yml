@@ -6,6 +6,8 @@ services:
     volumes:
       - ../../src:/app/src
       - ../../target:/app/target
+    env_file:
+      - .env
     environment:
       SPRING_PROFILES_ACTIVE: dev
     ports:
