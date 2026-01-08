@@ -1,0 +1,30 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: us-east-1
+
+      - name: Login to ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and push Docker image
+        run: |
+          IMAGE_TAG=${GITHUB_SHA}
+          docker build -f infra/docker/Dockerfile.prod -t turnos-backend:$IMAGE_TAG .
+          docker tag turnos-backend:$IMAGE_TAG $ECR_REPO:$IMAGE_TAG
+          docker push $ECR_REPO:$IMAGE_TAG
+        env:
+          ECR_REPO: ${{ secrets.ECR_REPO }}
