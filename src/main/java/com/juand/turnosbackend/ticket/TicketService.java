@@ -12,6 +12,7 @@ import com.juand.turnosbackend.api.dto.TicketResponseDTO;
 import com.juand.turnosbackend.person.Person;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.lang.NonNull;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -30,9 +31,12 @@ public class TicketService {
 
   private final AtomicInteger counter = new AtomicInteger(10);
 
+  @SuppressWarnings("null")
   public TicketResponseDTO create(final Person person) {
     char prefix = 'A';
-    while (true) {
+    int maxRetries = 5;
+    int attempts = 0;
+    while (attempts < maxRetries) {
       String code = prefix + String.valueOf(counter.incrementAndGet());
       try {
         Ticket t = Ticket.builder()
@@ -41,11 +45,16 @@ public class TicketService {
             .createdAt(Instant.now())
             .person(person)
             .build();
-        return buildTicketResponseDTO(ticketRepository.save(t));
+        
+        return buildTicketResponseDTO(Objects.requireNonNull(ticketRepository.save(t), "El ticket no puede ser nulo"));
       } catch (DataIntegrityViolationException ex) {
         // retry witch other code
+        attempts++;
+        System.out.println("Colisión de código" + code + ". Reintentando... ");
       }
     }
+    throw new ResponseStatusException(
+      HttpStatus.INTERNAL_SERVER_ERROR, "No se pudo crear el ticket después de " + maxRetries + " intentos");
   }
 
   public TicketResponseDTO callNext(final int moduleNumber) {
@@ -74,7 +83,7 @@ public class TicketService {
     Map<String, Object> payload = new HashMap<>();
     payload.put("action", "refresh");
     ws.convertAndSend("/topic/board", payload);
-    return buildTicketResponseDTO(t);
+    return buildTicketResponseDTO(Objects.requireNonNull(t));
   }
 
   public List<BoardItemDTO> lastCalled(final int limit) {
@@ -84,7 +93,8 @@ public class TicketService {
         .toList();
   }
 
-  private TicketResponseDTO buildTicketResponseDTO(Ticket ticket) {
+  private TicketResponseDTO buildTicketResponseDTO(@NonNull Ticket ticket) {
+
     return new TicketResponseDTO(
         ticket.getId(),
         ticket.getCode(),

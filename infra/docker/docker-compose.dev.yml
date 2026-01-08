@@ -1,26 +1,21 @@
 services:
   appmic-turnosbackend:
     build:
-      context: ./
-      dockerfile: Dockerfile.dev   # aquí usas el Dockerfile con DevTools
+      context: ../../ # ruta del proyecto turnos-system
+      dockerfile: infra/docker/Dockerfile.dev   # aquí usas el Dockerfile con DevTools
     volumes:
-      - ./src:/app/src
-      - ./target:/app/target
+      - ../../src:/app/src
+      - ../../target:/app/target
     environment:
-      DB_HOST: mysql
-      DB_PORT: ${DB_PORT}
-      DB_NAME: ${DB_NAME}
-      DB_USER: ${DB_USER}
-      DB_PASS: ${DB_PASS}
       SPRING_PROFILES_ACTIVE: dev
     ports:
-      - "8080:${PORT}"
+      - "3300:${PORT}"
     restart: always
-    networks:
-      - turnos-network
     depends_on:
       mysql:
         condition: service_healthy
+    networks:
+      - turnos-network
 
   mysql:
     image: mysql:oraclelinux9   # misma imagen que producción
@@ -44,3 +39,4 @@ networks:
 
 volumes:
   mysql-data:   # 🔑 volumen compartido entre dev y prod
+    name: turnos-system_mysql-data

@@ -17,6 +17,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.NonNull;
 import lombok.Setter;
 
 @Entity
@@ -32,9 +33,11 @@ public class Ticket {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
+  @NonNull
   @Column(nullable = false, unique = true)
   private String code;
 
+  @NonNull
   @Enumerated(EnumType.STRING)
   private TicketStatus status;
 
@@ -46,6 +49,7 @@ public class Ticket {
 
   private Integer moduleNumber;
 
-  @ManyToOne
+  @NonNull
+  @ManyToOne(optional = false)
   private Person person;
 }

@@ -12,8 +12,8 @@ spring:
       ddl-auto: update   # útil en dev para crear/actualizar tablas automáticamente
     properties:
       hibernate:
-        format_sql: true
-        show_sql: true   # muestra SQL en logs para depuración
+        "[format_sql]": true
+        "[show_sql]": true   # muestra SQL en logs para depuración
     open-in-view: true   # más flexible en dev
   devtools:
     restart:
@@ -23,5 +23,5 @@ spring:
 logging:
   level:
     root: INFO
-    org.springframework.web: DEBUG
-    org.hibernate.SQL: DEBUG
+    "[org.springframework.web]": DEBUG
+    "[org.hibernate.SQL]": DEBUG

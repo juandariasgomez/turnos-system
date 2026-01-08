@@ -1,8 +1,8 @@
 services:
   turnosbackend:
     build:
-      context: ./
-      dockerfile: Dockerfile.prod   # aquí usas el multi-stage
+      context: ../../ # ruta del proyecto turnos-system
+      dockerfile: infra/docker/Dockerfile.prod   # aquí usas el multi-stage
     environment:
       DB_HOST: ${DB_HOST}
       DB_PORT: ${DB_PORT}
@@ -11,23 +11,18 @@ services:
       DB_PASS: ${DB_PASS}
       SPRING_PROFILES_ACTIVE: prod
     ports:
-      - "8080:${PORT}"
+      - "3300:${PORT}"
     restart: always
-    networks:
-      - turnos-network
     depends_on:
       mysql:
         condition: service_healthy
+    networks:
+      - turnos-network
 
   mysql:
     image: mysql:oraclelinux9
     container_name: mysql
     restart: always
-    environment:
-      MYSQL_DATABASE: ${DB_NAME}
-      MYSQL_ROOT_PASSWORD: ${DB_PASS}
-      MYSQL_USER: ${DB_USER}
-      MYSQL_PASSWORD: ${DB_PASS}
     ports:
       - "3306:${DB_PORT}"
     volumes:
@@ -46,3 +41,4 @@ networks:
 
 volumes:
   mysql-data:
+    name: turnos-system_mysql-data
