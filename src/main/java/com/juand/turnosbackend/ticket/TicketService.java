@@ -13,6 +13,7 @@ import com.juand.turnosbackend.person.Person;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.lang.NonNull;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -25,6 +26,7 @@ import org.springframework.web.server.ResponseStatusException;
 @Transactional
 public class TicketService {
 
+  @Autowired
   private final TicketRepository ticketRepository;
 
   private final SimpMessagingTemplate ws;
@@ -34,7 +36,7 @@ public class TicketService {
   public TicketResponseDTO create(final Person person) {
     char prefix = 'A';
     int maxRetries = 5;
-    
+
     for (int attempts = 0; attempts < maxRetries; attempts++) {
       String code = prefix + String.valueOf(counter.incrementAndGet());
       try {
@@ -44,7 +46,7 @@ public class TicketService {
             .createdAt(Instant.now())
             .person(person)
             .build();
-        
+
         Ticket savedTicket = ticketRepository.save(ticket);
         return buildTicketResponseDTO(savedTicket);
 
@@ -54,7 +56,7 @@ public class TicketService {
       }
     }
     throw new ResponseStatusException(
-      HttpStatus.INTERNAL_SERVER_ERROR, "No se pudo crear el ticket después de " + maxRetries + " intentos");
+        HttpStatus.INTERNAL_SERVER_ERROR, "No se pudo crear el ticket después de " + maxRetries + " intentos");
   }
 
   public TicketResponseDTO callNext(final int moduleNumber) {
@@ -105,8 +107,7 @@ public class TicketService {
         ticket.getCalledAt(),
         ticket.getServedAt(),
         ticket.getModuleNumber() != null ? ticket.getModuleNumber() : 0,
-        fullName
-    );
+        fullName);
   }
 
 }
