@@ -31,25 +31,25 @@ public class TicketService {
 
   private final AtomicInteger counter = new AtomicInteger(10);
 
-  @SuppressWarnings("null")
   public TicketResponseDTO create(final Person person) {
     char prefix = 'A';
     int maxRetries = 5;
-    int attempts = 0;
-    while (attempts < maxRetries) {
+    
+    for (int attempts = 0; attempts < maxRetries; attempts++) {
       String code = prefix + String.valueOf(counter.incrementAndGet());
       try {
-        Ticket t = Ticket.builder()
+        Ticket ticket = Ticket.builder()
             .code(code)
             .status(TicketStatus.CREATED)
             .createdAt(Instant.now())
             .person(person)
             .build();
         
-        return buildTicketResponseDTO(Objects.requireNonNull(ticketRepository.save(t), "El ticket no puede ser nulo"));
+        Ticket savedTicket = ticketRepository.save(ticket);
+        return buildTicketResponseDTO(savedTicket);
+
       } catch (DataIntegrityViolationException ex) {
         // retry witch other code
-        attempts++;
         System.out.println("Colisión de código" + code + ". Reintentando... ");
       }
     }
@@ -94,6 +94,8 @@ public class TicketService {
   }
 
   private TicketResponseDTO buildTicketResponseDTO(@NonNull Ticket ticket) {
+    Person person = ticket.getPerson();
+    String fullName = (person != null) ? person.getName() + " " + person.getLastName() : "Sin nombre";
 
     return new TicketResponseDTO(
         ticket.getId(),
@@ -103,7 +105,8 @@ public class TicketService {
         ticket.getCalledAt(),
         ticket.getServedAt(),
         ticket.getModuleNumber() != null ? ticket.getModuleNumber() : 0,
-        ticket.getPerson().getName() + " " + ticket.getPerson().getLastName());
+        fullName
+    );
   }
 
 }
