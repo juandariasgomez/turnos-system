@@ -5,4 +5,4 @@ WORKDIR /app
 COPY . .
 
 # Usar DevTools + spring-boot:run
-CMD ["mvn", "spring-boot:run", "-Pdev"]
+ENTRYPOINT ["mvn", "spring-boot:run", "-Pdev"]
