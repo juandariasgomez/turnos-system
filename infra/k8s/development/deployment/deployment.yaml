@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: turnos-system
+  namespace: juandariasgomez-dev
+spec:
+  replicas: 10
+  selector:
+    matchLabels:
+      app: turnos-system
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+  template:
+    metadata:
+      labels:
+        app: turnos-system
+    spec:
+      containers:
+      - name: turnos-system
+        image: image-registry.openshift-image-registry.svc:5000/juandariasgomez-dev/turnos-system:1.0.0
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+        env:
+        - name: SPRING_PROFILES_ACTIVE
+          value: prod
+        envFrom:
+        - secretRef:
+            name: mysql-secrets
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi

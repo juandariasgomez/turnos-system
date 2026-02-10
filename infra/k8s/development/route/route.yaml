@@ -1,0 +1,17 @@
+kind: Route
+apiVersion: route.openshift.io/v1
+metadata:
+  name: turnos-system-service
+  namespace: juandariasgomez-dev
+  managedFields:
+spec:
+  host: turnos-system-service-juandariasgomez-dev.apps.rm1.0a51.p1.openshiftapps.com
+  to:
+    kind: Service
+    name: turnos-system-service
+    weight: 100
+  port:
+    targetPort: http
+  tls:
+    termination: edge
+  wildcardPolicy: None
