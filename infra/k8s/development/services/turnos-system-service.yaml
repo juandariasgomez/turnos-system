@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: turnos-system-service
+  namespace: juandariasgomez-dev
+  labels:
+    app: turnos-system
+spec:
+  type: ClusterIP
+  selector:
+    app: turnos-system
+  ports:
+    - name: http
+      protocol: TCP
+      port: 8080
+      targetPort: 8080

@@ -1,145 +1,15 @@
-kind: StatefulSet
 apiVersion: apps/v1
+kind: StatefulSet
 metadata:
   name: mysql-db
   namespace: juandariasgomez-dev
-  managedFields:
-    - manager: Mozilla
-      operation: Update
-      apiVersion: apps/v1
-      time: '2026-01-23T23:35:04Z'
-      fieldsType: FieldsV1
-      fieldsV1:
-        'f:spec':
-          'f:persistentVolumeClaimRetentionPolicy':
-            .: {}
-            'f:whenDeleted': {}
-            'f:whenScaled': {}
-          'f:podManagementPolicy': {}
-          'f:revisionHistoryLimit': {}
-          'f:selector': {}
-          'f:serviceName': {}
-          'f:template':
-            'f:metadata':
-              'f:labels':
-                .: {}
-                'f:app': {}
-            'f:spec':
-              'f:containers':
-                'k:{"name":"mysql"}':
-                  'f:image': {}
-                  'f:volumeMounts':
-                    .: {}
-                    'k:{"mountPath":"/var/lib/mysql"}':
-                      .: {}
-                      'f:mountPath': {}
-                      'f:name': {}
-                  'f:terminationMessagePolicy': {}
-                  .: {}
-                  'f:resources': {}
-                  'f:env':
-                    .: {}
-                    'k:{"name":"MYSQL_ROOT_PASSWORD"}':
-                      .: {}
-                      'f:name': {}
-                      'f:valueFrom':
-                        .: {}
-                        'f:secretKeyRef': {}
-                  'f:terminationMessagePath': {}
-                  'f:imagePullPolicy': {}
-                  'f:ports':
-                    .: {}
-                    'k:{"containerPort":3306,"protocol":"TCP"}':
-                      .: {}
-                      'f:containerPort': {}
-                      'f:protocol': {}
-                  'f:name': {}
-              'f:dnsPolicy': {}
-              'f:restartPolicy': {}
-              'f:schedulerName': {}
-              'f:securityContext': {}
-              'f:terminationGracePeriodSeconds': {}
-          'f:updateStrategy':
-            'f:rollingUpdate':
-              .: {}
-              'f:partition': {}
-            'f:type': {}
-          'f:volumeClaimTemplates': {}
-    - manager: member-operator
-      operation: Update
-      apiVersion: apps/v1
-      time: '2026-01-27T02:17:59Z'
-      fieldsType: FieldsV1
-      fieldsV1:
-        'f:spec':
-          'f:replicas': {}
-    - manager: kube-controller-manager
-      operation: Update
-      apiVersion: apps/v1
-      time: '2026-01-27T02:18:03Z'
-      fieldsType: FieldsV1
-      fieldsV1:
-        'f:status':
-          'f:availableReplicas': {}
-          'f:collisionCount': {}
-          'f:currentRevision': {}
-          'f:observedGeneration': {}
-          'f:replicas': {}
-          'f:updateRevision': {}
-      subresource: status
+  labels:
+    app: mysql-db
 spec:
   serviceName: mysql-db
-  revisionHistoryLimit: 10
-  persistentVolumeClaimRetentionPolicy:
-    whenDeleted: Retain
-    whenScaled: Retain
-  volumeClaimTemplates:
-    - kind: PersistentVolumeClaim
-      apiVersion: v1
-      metadata:
-        name: mysql-data
-        creationTimestamp: null
-      spec:
-        accessModes:
-          - ReadWriteOnce
-        resources:
-          requests:
-            storage: 1Gi
-        volumeMode: Filesystem
-      status:
-        phase: Pending
-  template:
-    metadata:
-      creationTimestamp: null
-      labels:
-        app: mysql-db
-    spec:
-      containers:
-        - resources: {}
-          terminationMessagePath: /dev/termination-log
-          name: mysql
-          env:
-            - name: MYSQL_ROOT_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: mysql-secrets
-                  key: MYSQL_ROOT_PASSWORD
-          ports:
-            - containerPort: 3306
-              protocol: TCP
-          imagePullPolicy: IfNotPresent
-          volumeMounts:
-            - name: mysql-data
-              mountPath: /var/lib/mysql
-          terminationMessagePolicy: File
-          image: 'mysql:oraclelinux9'
-      restartPolicy: Always
-      terminationGracePeriodSeconds: 30
-      dnsPolicy: ClusterFirst
-      securityContext: {}
-      schedulerName: default-scheduler
-  podManagementPolicy: OrderedReady
   replicas: 0
+  revisionHistoryLimit: 10
+  podManagementPolicy: OrderedReady
   updateStrategy:
     type: RollingUpdate
     rollingUpdate:
@@ -147,3 +17,42 @@ spec:
   selector:
     matchLabels:
       app: mysql-db
+  persistentVolumeClaimRetentionPolicy:
+    whenDeleted: Retain
+    whenScaled: Retain
+  volumeClaimTemplates:
+  - metadata:
+      name: mysql-data
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: 1Gi
+      volumeMode: Filesystem
+  template:
+    metadata:
+      labels:
+        app: mysql-db
+    spec:
+      containers:
+      - name: mysql
+        image: mysql:oraclelinux9
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 3306
+          protocol: TCP
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mysql-secrets
+              key: MYSQL_ROOT_PASSWORD
+        volumeMounts:
+        - name: mysql-data
+          mountPath: /var/lib/mysql
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
+      dnsPolicy: ClusterFirst
