@@ -1,0 +1,23 @@
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  name: turnos-system
+  namespace: juandariasgomez-dev
+
+spec:
+  output:
+    to:
+      kind: ImageStreamTag
+      name: turnos-system:1.0.0
+
+  strategy:
+    type: Docker
+    dockerStrategy:
+      dockerfilePath: infra/docker/Dockerfile.prod
+
+  source:
+    type: Git
+    git:
+      uri: https://github.com/juandariasgomez/turnos-system.git
+
+  runPolicy: Serial
