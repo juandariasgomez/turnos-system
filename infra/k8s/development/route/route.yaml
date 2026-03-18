@@ -6,7 +6,7 @@ metadata:
   labels:
     app: turnos-system
 spec:
-  host: jda96devops.site
+  host: www.jda96devops.site
   to:
     kind: Service
     name: turnos-system-service
