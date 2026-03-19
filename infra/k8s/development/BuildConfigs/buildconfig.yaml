@@ -3,21 +3,40 @@ kind: BuildConfig
 metadata:
   name: turnos-system
   namespace: juandariasgomez-dev
+  labels:
+    app: turnos-system
+    environment: dev
 
 spec:
-  output:
-    to:
-      kind: ImageStreamTag
-      name: turnos-system:1.0.0
+  source:
+    type: Git
+    git:
+      uri: https://github.com/juandariasgomez/turnos-system.git
+      ref: main
 
   strategy:
     type: Docker
     dockerStrategy:
       dockerfilePath: infra/docker/Dockerfile.prod
+      noCache: true
 
-  source:
-    type: Git
-    git:
-      uri: https://github.com/juandariasgomez/turnos-system.git
+  output:
+    to:
+      kind: ImageStreamTag
+      name: turnos-system:1.0.0
+
+  triggers:
+    - type: GitHub
+      github:
+        secret: github-webhook-secret
+    - type: ConfigChange
+
+  resources:
+    limits:
+      cpu: "1"
+      memory: 1Gi
+    requests:
+      cpu: "200m"
+      memory: 512Mi
 
   runPolicy: Serial
