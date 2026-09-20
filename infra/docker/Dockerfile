@@ -6,7 +6,6 @@ WORKDIR /app
 COPY . .
 RUN mvn clean package -Pprod -DskipTests
 
-
 # Etapa de runtime
 FROM eclipse-temurin:21-jre
 WORKDIR /app

@@ -1,8 +1,0 @@
-FROM maven:3.9.6-eclipse-temurin-21
-WORKDIR /app
-
-# Copiamos todo el proyecto
-COPY . .
-
-# Usar DevTools + spring-boot:run
-ENTRYPOINT ["mvn", "spring-boot:run", "-Pdev"]
